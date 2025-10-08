@@ -61,7 +61,7 @@ class LinearPQ(BasePQ):
             if element[1] > priority:
                 self.elements.insert(i, (item, priority))
                 break
-    
+
 class HeapPQ(BasePQ):
     def __init__(self):
         self.elements: list[tuple[int, float]] = []

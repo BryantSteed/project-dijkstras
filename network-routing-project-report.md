@@ -14,7 +14,31 @@ I will implemented the actual path finding by simply translating the pseudocode 
 
 #### Time 
 
-*Fill me in*
+```py
+def find_shortest_path_with_linear_pq(
+        graph: dict[int, dict[int, float]],
+        source: int,
+        target: int
+) -> tuple[list[int], float]:
+    """
+    Find the shortest (least-cost) path from `source` to `target` in `graph`
+    using the array-based (linear lookup) algorithm.
+
+    Return:
+        - the list of nodes (including `source` and `target`)
+        - the cost of the path
+    """
+    distances = {node: float('inf') for node in graph} # O(V)
+    distances[source] = 0 #O(1)
+    prev = {node: None for node in graph} #O(V)
+    pq = LinearPQ() # O(1)
+    run_dijkstras(graph, distances, prev, pq)
+    total_cost = distances[target] #O(1)
+    path = get_path(source, target, prev) # O(V)
+    return path, total_cost
+```
+
+It's quite self explanatory while initialization 
 
 #### Space
 
