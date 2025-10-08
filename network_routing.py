@@ -12,7 +12,7 @@ def find_shortest_path_with_heap(
         - the cost of the path
     """
 
-class linear_pq:
+class linear_pq():
     def __init__(self):
         self.elements: list[tuple[str, str]] = []
     
@@ -36,8 +36,11 @@ class linear_pq:
         for i, element in enumerate(self.elements):
             if element[0] == item:
                 del self.elements[i]
+                break
+        for i, element in enumerate(self.elements):
             if element[1] > priority:
                 self.elements.insert(i, (item, priority))
+                break
         return True
 
 
@@ -54,3 +57,26 @@ def find_shortest_path_with_linear_pq(
         - the list of nodes (including `source` and `target`)
         - the cost of the path
     """
+    distances = {node: float('inf') for node in graph}
+    distances[source] = 0
+    prev = {node: None for node in graph}
+    pq = linear_pq()
+    for node, distance in distances.items():
+        pq.push(node, distance)
+    while not pq.is_empty():
+        u = pq.pop()
+        for v, cost in graph[u].items():
+            if distances[v] > distances[u] + cost:
+                distances[v] = distances[u] + cost
+                prev[v] = u
+                pq.update_priority(v, distances[v])
+    total_cost = distances[target]
+    path = []
+    traversal_node = target
+    while traversal_node is not None:
+        path.append(traversal_node)
+        traversal_node = prev[traversal_node]
+    path.reverse()
+    if len(path) == 1 and path[0] != source:
+        path = []
+    return path, total_cost
