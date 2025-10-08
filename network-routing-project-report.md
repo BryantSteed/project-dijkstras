@@ -4,7 +4,7 @@
 
 ### Design Experience
 
-For the linear PQ, I will implement it as a linked list and simply iterate over that linked list when I put something in there that has priority to know where it needs to be put. To extract from the PQ, I will simply pop the element from the front (or back) of the list.
+For the linear PQ, I will implement it as a python list and simply iterate over that list when I put something in there that has priority to know where it needs to be put. To extract from the PQ, I will simply pop the element from the front (or back) of the list.
 
 I will implemented the actual path finding by simply translating the pseudocode into python source. The correspondence between the two is pretty much 1 to 1.
 
