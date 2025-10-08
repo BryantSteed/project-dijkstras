@@ -11,18 +11,38 @@ def find_shortest_path_with_heap(
         - the list of nodes (including `source` and `target`)
         - the cost of the path
     """
+    distances = {node: float('inf') for node in graph}
+    distances[source] = 0
+    prev = {node: None for node in graph}
+    pq = HeapPQ()
+    run_dijkstras(graph, distances, prev, pq)
+    total_cost = distances[target]
+    path = get_path(source, target, prev)
+    return path, total_cost
 
-class linear_pq():
+class BasePQ:
+    def push(self, item, priority):
+        raise NotImplementedError()
+    
+    def pop(self):
+        raise NotImplementedError()
+    
+    def is_empty(self) -> bool:
+        raise NotImplementedError()
+    
+    def update_priority(self, item, priority):
+        raise NotImplementedError()
+
+class LinearPQ(BasePQ):
     def __init__(self):
         self.elements: list[tuple[str, str]] = []
     
-    def push(self, item, priority) -> bool:
+    def push(self, item, priority):
         for i, element in enumerate(self.elements):
             if element[1] > priority:
                 self.elements.insert(i, (item, priority))
-                return True
+                return
         self.elements.append((item, priority))
-        return True
 
     def pop(self):
         if self.elements:
@@ -32,7 +52,7 @@ class linear_pq():
     def is_empty(self) -> bool:
         return len(self.elements) == 0
     
-    def update_priority(self, item, priority) -> bool:
+    def update_priority(self, item, priority):
         for i, element in enumerate(self.elements):
             if element[0] == item:
                 del self.elements[i]
@@ -41,8 +61,68 @@ class linear_pq():
             if element[1] > priority:
                 self.elements.insert(i, (item, priority))
                 break
-        return True
+    
+class HeapPQ(BasePQ):
+    def __init__(self):
+        self.elements: list[tuple[int, float]] = []
 
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0
+
+    def push(self, item, priority):
+        self.elements.append((item, priority))
+        last_index = len(self.elements) - 1
+        self._percolate_up(last_index)
+
+    def pop(self):
+        last_index = len(self.elements) - 1
+        if last_index < 0:
+            raise ValueError("No Elements in the PQ")
+        self._swap(0, last_index)
+        item, priority = self.elements.pop()
+        self._percolate_down()
+        return item
+
+    def update_priority(self, item, priority):
+        for i, (node, _) in enumerate(self.elements):
+            if node == item:
+                self.elements[i] = (item, priority)
+                self._percolate_up(i)
+                break
+
+    def _percolate_down(self):
+        index = 0
+        left_child = (2 * index) + 1
+        right_child = (2 * index) + 2
+        while left_child < len(self.elements):
+            smallest = self._get_smallest_child(left_child, right_child)
+            if self.elements[index][1] > self.elements[smallest][1]:
+                self._swap(index, smallest)
+                index = smallest
+                left_child = (2 * index) + 1
+                right_child = (2 * index) + 2
+            else:
+                break
+
+    def _get_smallest_child(self, left_child, right_child):
+        if right_child >= len(self.elements):
+            return left_child
+        if self.elements[left_child][1] < self.elements[right_child][1]:
+            return left_child
+        return right_child
+
+    def _swap(self, i, j):
+        self.elements[i], self.elements[j] = self.elements[j], self.elements[i]
+
+    def _percolate_up(self, index: int):
+        index = index
+        while index > 0:
+            parent = ((index + 1) // 2) - 1
+            if self.elements[index][1] < self.elements[parent][1]:
+                self._swap(index, parent)
+                index = parent
+            else:
+                break
 
 def find_shortest_path_with_linear_pq(
         graph: dict[int, dict[int, float]],
@@ -60,7 +140,24 @@ def find_shortest_path_with_linear_pq(
     distances = {node: float('inf') for node in graph}
     distances[source] = 0
     prev = {node: None for node in graph}
-    pq = linear_pq()
+    pq = LinearPQ()
+    run_dijkstras(graph, distances, prev, pq)
+    total_cost = distances[target]
+    path = get_path(source, target, prev)
+    return path, total_cost
+
+def get_path(source, target, prev):
+    path = []
+    traversal_node = target
+    while traversal_node is not None:
+        path.append(traversal_node)
+        traversal_node = prev[traversal_node]
+    path.reverse()
+    if len(path) == 1 and path[0] != source:
+        path = []
+    return path
+
+def run_dijkstras(graph, distances, prev, pq: BasePQ):
     for node, distance in distances.items():
         pq.push(node, distance)
     while not pq.is_empty():
@@ -70,13 +167,3 @@ def find_shortest_path_with_linear_pq(
                 distances[v] = distances[u] + cost
                 prev[v] = u
                 pq.update_priority(v, distances[v])
-    total_cost = distances[target]
-    path = []
-    traversal_node = target
-    while traversal_node is not None:
-        path.append(traversal_node)
-        traversal_node = prev[traversal_node]
-    path.reverse()
-    if len(path) == 1 and path[0] != source:
-        path = []
-    return path, total_cost

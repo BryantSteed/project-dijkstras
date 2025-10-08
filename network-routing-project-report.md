@@ -4,6 +4,8 @@
 
 ### Design Experience
 
+Sam Bills and I did the design experience on 10/8/2025
+
 For the linear PQ, I will implement it as a python list and simply iterate over that list when I put something in there that has priority to know where it needs to be put. To extract from the PQ, I will simply pop the element from the front (or back) of the list.
 
 I will implemented the actual path finding by simply translating the pseudocode into python source. The correspondence between the two is pretty much 1 to 1.
@@ -44,7 +46,11 @@ I will implemented the actual path finding by simply translating the pseudocode 
 
 ### Design Experience
 
-For the heap priority queue, I will also implement the binary heap using a linked list. But instead of iterating over every element when I insert, I will insert at the bottom of the heap and have it percolate it up. When I pop from the priority queue, I will initially put the element at the bottom of the heap on the top and have that element percolate its way down. My implementation for the actual dijkstra's will be the exact same except for the use of data structure. 
+Sam Bills and I did the design experience on 10/8/2025
+
+For the heap priority queue, I will also implement the binary heap using an array. But instead of iterating over every element when I insert, I will insert at the bottom of the heap and have it percolate it up. When I pop from the priority queue, I will initially put the element at the bottom of the heap on the top and have that element percolate its way down. My implementation for the actual dijkstra's will be the exact same except for the use of data structure. 
+
+To update I'll have a dictionary point to each node in the array.
 
 ### Theoretical Analysis - Dijkstra's With Heap PQ
 
@@ -87,6 +93,8 @@ For the heap priority queue, I will also implement the binary heap using a linke
 
 ### Design Experience
 
+Sam Bills and I did the design experience on 10/8/2025
+
 To collect the data, I will simply use the command line input given to me. Then I will use matplotlib to plot the data. I will likely use the subplots feature.
 
 I think that for both the more dense graphs and the less dense graphs, the heap will be faster for both because logarithmic time should always beat linear time regardless of how dense the graph is. I just don't think that the density will make a huge difference. Sure, the PQ does a lot of pointer arithmetic in percolation, but I still think that that will be faster than iterating over all elements of the list in every case.
@@ -125,6 +133,8 @@ I think that for both the more dense graphs and the less dense graphs, the heap 
 ## Stretch 2
 
 ### Design Experience
+
+Sam Bills and I did the design experience on 10/8/2025
 
 I think that the provided algorithm could be real in certain contexts where the weights actually are normally distributed. However, this implies a sense of randomness to the weights in actual business contexts that I don't think is always correct. If we talking about cities, I'm not sure that the distances from cities is necessarily going to be normally distributed because it just depends, but it still might be a useful heuristic for testing the algorithm.
 
