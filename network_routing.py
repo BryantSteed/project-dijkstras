@@ -36,31 +36,34 @@ class BasePQ:
 class LinearPQ(BasePQ):
     def __init__(self):
         self.elements: list[tuple[str, str]] = []
+        self.reference: dict[int, int] = {}
     
     def push(self, item, priority):
-        for i, element in enumerate(self.elements):
-            if element[1] > priority:
-                self.elements.insert(i, (item, priority))
-                return
         self.elements.append((item, priority))
+        self.reference[item] = len(self.elements) - 1
 
     def pop(self):
-        if self.elements:
-            return self.elements.pop(0)[0]
-        raise ValueError("No Elements in the PQ")
+        curr_min = self.elements[0][1]
+        curr_min_index = 0
+        for i, element in enumerate(self.elements):
+            if element[1] < curr_min:
+                curr_min = element[1]
+                curr_min_index = i
+        item = self.elements.pop(curr_min_index)[0]
+        self._update_reference(item, curr_min_index)
+        return item
     
+    def _update_reference(self, item, popped_index):
+        del self.reference[item]
+        for i in range(popped_index, len(self.elements)):
+            self.reference[self.elements[i][0]] -= 1
+
     def is_empty(self) -> bool:
         return len(self.elements) == 0
     
     def update_priority(self, item, priority):
-        for i, element in enumerate(self.elements):
-            if element[0] == item:
-                del self.elements[i]
-                break
-        for i, element in enumerate(self.elements):
-            if element[1] > priority:
-                self.elements.insert(i, (item, priority))
-                break
+        index = self.reference[item]
+        self.elements[index] = (item, priority)
 
 class HeapPQ(BasePQ):
     def __init__(self):
