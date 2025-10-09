@@ -116,6 +116,8 @@ class HeapPQ(BasePQ):
 
     def _swap(self, i, j):
         self.elements[i], self.elements[j] = self.elements[j], self.elements[i]
+        self.reference[self.elements[i][0]] = i
+        self.reference[self.elements[j][0]] = j
 
     def _percolate_up(self, index: int):
         index = index
