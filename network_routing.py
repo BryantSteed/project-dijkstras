@@ -65,6 +65,8 @@ class LinearPQ(BasePQ):
 class HeapPQ(BasePQ):
     def __init__(self):
         self.elements: list[tuple[int, float]] = []
+        self.reference: dict[int, int] = {}
+        self.pop_count = 0
 
     def is_empty(self) -> bool:
         return len(self.elements) == 0
@@ -72,6 +74,7 @@ class HeapPQ(BasePQ):
     def push(self, item, priority):
         self.elements.append((item, priority))
         last_index = len(self.elements) - 1
+        self.reference[item] = last_index
         self._percolate_up(last_index)
 
     def pop(self):
@@ -81,14 +84,14 @@ class HeapPQ(BasePQ):
         self._swap(0, last_index)
         item, priority = self.elements.pop()
         self._percolate_down()
+        self.pop_count += 1
+        del self.reference[item]
         return item
 
     def update_priority(self, item, priority):
-        for i, (node, _) in enumerate(self.elements):
-            if node == item:
-                self.elements[i] = (item, priority)
-                self._percolate_up(i)
-                break
+        index = self.reference[item - self.pop_count]
+        self.elements[index] = (item, priority)
+        self._percolate_up(index)
 
     def _percolate_down(self):
         index = 0
