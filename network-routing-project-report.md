@@ -207,6 +207,8 @@ So, I predict the space complexity to be **O(V + E)**, with the graph itself bei
 
 ### Empirical Data - Dijkstra's With Linear PQ
 
+Ran with Density of 0.3
+
 |    V    |    E    | Time (sec) |
 | ------- | ------- | ---------- |
 | 500     | 75000.0 | 0.018      |
@@ -351,6 +353,8 @@ Remember, the implementation is the same other than the HeapPQ. Therefore, becau
 
 ### Empirical Data - Dijkstra's With Heap PQ
 
+Ran with Density of 0.3
+
 |    V    |    E    | Time (sec) |
 | ------- | ------- | ---------- |
 | 500     | 75000.0 | 0.011      |
@@ -421,11 +425,17 @@ I think that for both the more dense graphs and the less dense graphs, the heap 
 
 ### Plot
 
-*Fill me in*
+![img](linear_vs_heap_density_comparison.png)
 
 ### Discussion
 
-*Fill me in*
+As you can see, the HeapPQ implementation still outperforms the LinearPQ in runtime by a significant margin. This is exactly by expected result. I believe that being able to pop in O(Log V) time has made this great difference. It is important to not, however, that the relative runtime gap between the two implementations appears to shrink as density increases.
+
+For example, in the first low density plot of 0.3, you can see that the linearPQ implementation ends with nearly double the runtime of the HeapPQ. That ending gap shrinks to slightly less than half in the medium density plot of 0.6. It then shrinks even more in the high density 1.0 plot to where there is just a 40 percent gap between the two.
+
+The trend is clear that HeapPQ struggles more with increasing density, but from this data is doesn't appear to justify switching algorithms depending on density. This is because is all of these plots, its clear that HeapPQ gains on linear gains on LinearPQ as density increases. However, in all these cases, LinearPQ is still gaining on HeapPQ as input size increases.
+
+It'd be interesting to see what would happen if you keep scaling up the density, which would mean that each node could have an edge to the same node twice. The practical applications of such a graph are likely sparse, but it'd be interesting to see if it's enough to make HeapPQ worse than LinearPQ.
 
 ## Stretch 2
 
