@@ -12,7 +12,9 @@ I will implemented the actual path finding by simply translating the pseudocode 
 
 ### Theoretical Analysis - Dijkstra's With Linear PQ
 
-#### Time 
+#### Time
+
+##### find_shortest_path_with_linear_pq - **O(V^2 + E)**
 
 ```py
 def find_shortest_path_with_linear_pq(
@@ -38,33 +40,200 @@ def find_shortest_path_with_linear_pq(
     return path, total_cost
 ```
 
-It's quite self explanatory while initialization 
+It's quite self explanatory why the initialization is simply O(V) because you simply initialize the distances and the previous dictionary by iterating through all the node. The same goes for the path, which will contain at max all n nodes.For that reason, these outer parts are O(V).
+
+```py
+def run_dijkstras(graph, distances, prev, pq: BasePQ):
+    for node, distance in distances.items():
+        pq.push(node, distance)                #O(V * push complexity)
+    while not pq.is_empty():
+        u = pq.pop()          #O(V * pop complexity)
+        for v, cost in graph[u].items():   # O(1) hash map lookup
+            if distances[v] > distances[u] + cost:  # O(1) basic arithmetic and hash table lookup
+                distances[v] = distances[u] + cost  # O(1) basic arithmetic and hash table lookup
+                prev[v] = u    # O(1) hash map lookup
+                pq.update_priority(v, distances[v])  # ~ O(E * update complexity)
+```
+
+We push every node into the priority queue and we pop every node from the priority queue, which means that those place contribute V * their respective time complexity (push and pop) to the overall time complexity.
+
+However, calling update priority doesn't necessarily happen to every node, as there could be orphaned nodes that aren't connected too. Furthermore, update_priority could be called on the same node twice if a better path is revealed. For that reason, the amount of calls to update priority varies more based on the number of edges than the number of nodes, so I recorded it as (O E * update complexity)
+
+```py
+    def push(self, item, priority):
+        self.elements.append((item, priority)) # O(1)
+        self.reference[item] = len(self.elements) - 1 #O(1)
+
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0 #O(1)
+```
+
+Put quite simply here, pushing onto the linear PQ simply involves appending to the end of the array and record the index. This is a simple constant time operation for arrays.
+
+The is_empty() simply checks if the list is empty. Again, this is self explanatory as a constant time operation.
+
+So, pushing with our linear PQ O(1) constant.
+
+```py
+def pop(self):
+        curr_min = self.elements[0][1] #O(1)
+        curr_min_index = 0   #O(1)
+        for i, element in enumerate(self.elements): #O(V)
+            if element[1] < curr_min: #O(1)
+                curr_min = element[1] #O(1)
+                curr_min_index = i #O(1)
+        item = self.elements.pop(curr_min_index)[0] #O(V)
+        self._update_reference(item, curr_min_index) # See below
+        return item
+    
+    def _update_reference(self, item, popped_index):
+        del self.reference[item] #O(1) hash table lookup and memory freeing
+        for i in range(popped_index, len(self.elements)): #O(V)
+            self.reference[self.elements[i][0]] -= 1 #O(1)
+```
+
+Pop is riddle with a lot of obviously constant time operations like pointer array arithmetic and hash table lookups as seen above. However, we have iterate through the list of elements to find our minimum. Additionally, we perform a pop operation on the list, which could potentially involve shifting over at worst V items to the left for O(V).
+
+Additionally, the _update_reference subroutine has to iterate through potentially all the elements of the list (depending on which index was popped), which could iterate through all V nodes!. So, pop gets a time complexity of O(V) linear.
+
+```py
+def update_priority(self, item, priority):
+        index = self.reference[item]  #O(1)
+        self.elements[index] = (item, priority) #(1)
+```
+
+The update priority is function is trivial. It is constant because a hash table lookup is constant. Going back to Dijkstra's now, we see that the pushing operations are O(V * 1) = O(V). The popping operations are O(2V * V) = O(V^2). The update operations total to be O(E * 1) = O(E). So total for Dijkstra's is O(V + V^2 + E) = O(V^2 + E).
+
+Going back to our outer function where we add the linear times for computing the path and initialization, we get O(V^2 + E + 3V) = **O(V^2 + E)**.
 
 #### Space
 
-*Fill me in*
+##### find_shortest_path_with_linear_pq - **O(V + E)**
+
+```py
+def find_shortest_path_with_linear_pq(
+        graph: dict[int, dict[int, float]], # O(V + E)
+        source: int,
+        target: int
+) -> tuple[list[int], float]:
+    """
+    Find the shortest (least-cost) path from `source` to `target` in `graph`
+    using the array-based (linear lookup) algorithm.
+
+    Return:
+        - the list of nodes (including `source` and `target`)
+        - the cost of the path
+    """
+    distances = {node: float('inf') for node in graph} # O(V)
+    distances[source] = 0 #O(1)
+    prev = {node: None for node in graph} #O(V)
+    pq = LinearPQ() # O(1)
+    run_dijkstras(graph, distances, prev, pq)
+    total_cost = distances[target] #O(1)
+    path = get_path(source, target, prev) # O(V)
+    return path, total_cost
+```
+
+The dictionary that is the graph holds a copy of all the nodes and edges, so it must be O(V + E) space. The other temporary initializations such as the distances and previous dictionaries are simply O(V) space because they only vary with the number of nodes. Subtraction and pointer arithmetic are O(1) because they are small simply negligible values stored in registers or in memory temporarily.
+
+```py
+def run_dijkstras(graph, distances, prev, pq: BasePQ): # O(V + E)
+    for node, distance in distances.items():
+        pq.push(node, distance)         # O(V)
+    while not pq.is_empty():
+        u = pq.pop()       # O(V), same data structure
+        for v, cost in graph[u].items(): 
+            if distances[v] > distances[u] + cost: 
+                distances[v] = distances[u] + cost 
+                prev[v] = u # O(V)
+                pq.update_priority(v, distances[v]) 
+```
+
+Is really the data structures that matter, for that reason the arithmetic operations performed here do not significantly impact space. The graph is here which add O(V + E) as explained before. The distances and previous maps store V nodes at max, so they both contribute O(V).
+
+```py
+class LinearPQ(BasePQ):
+    def __init__(self):
+        self.elements: list[tuple[str, str]] = []
+        self.reference: dict[int, int] = {}
+```
+
+This is really the only relevant function for space complexity of the linear PQ. All the functions are simply performing operations on these two data structures: the list of elements and the dictionary that store an index to a particular element.
+
+Because there are at most V nodes in the Linear PQ, both of these data structures hold at most V nodes worth of data and are therefore O(V) in space.
+
+```py
+    def push(self, item, priority):
+        self.elements.append((item, priority)) 
+        self.reference[item] = len(self.elements) - 1 
+
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0 
+```
+
+Of course this is the method that add to the PQ, which will be at most V for O(V). Its own internal space complexity is negligible because its just arithmetic and temp values.
+
+```py
+def pop(self):
+        curr_min = self.elements[0][1] 
+        curr_min_index = 0   
+        for i, element in enumerate(self.elements): 
+            if element[1] < curr_min: 
+                curr_min = element[1] 
+                curr_min_index = i 
+        item = self.elements.pop(curr_min_index)[0] 
+        self._update_reference(item, curr_min_index)
+        return item
+    
+    def _update_reference(self, item, popped_index):
+        del self.reference[item] 
+        for i in range(popped_index, len(self.elements)): 
+            self.reference[self.elements[i][0]] -= 1 
+```
+
+Again, this method contributes nothing significant to space because its own internal space complexity is negligible because its just arithmetic and temp values.
+
+```py
+def update_priority(self, item, priority):
+        index = self.reference[item]  #O(1)
+        self.elements[index] = (item, priority) #(1)
+```
+
+Similarly, the internal space complexity of the update method is negligible because its just arithmetic and temp values.
+
+In conclusion, we see that the data structure that grows to be the largest throughout this process remains the graph at O(V + E). All the other data structures used are simply O(V) because the python garbage collector frees the memory when we iterate over the edges in dijkstra's algorithm. The same happens when we iterate over the elements in the LinearPQ.
+
+So, I predict the space complexity to be **O(V + E)**, with the graph itself being the driver of space.
 
 ### Empirical Data - Dijkstra's With Linear PQ
 
-| N    | Density | time (ms) |
-|------|---------|-----------|
-| 500  | .2      |           |
-| 1000 | .2      |           |
-| 1500 | .2      |           |
-| 2000 | .2      |           |
-| 2500 | .2      |           |
-| 3000 | .2      |           |
-| 3500 | .2      |           |
+|    V    |    E    | Time (sec) |
+| ------- | ------- | ---------- |
+| 500     | 75000.0 | 0.018      |
+| 500     | 75000.0 | 0.018      |
+| 1000    | 300000.0 | 0.08       |
+| 1500    | 675000.0 | 0.18       |
+| 2000    | 1200000.0 | 0.331      |
+| 2500    | 1875000.0 | 0.573      |
+| 3000    | 2700000.0 | 1.24       |
+| 3500    | 3675000.0 | 1.207      |
 
 ### Comparison of Theoretical and Empirical Results - Dijkstra's With Linear PQ
 
-- Theoretical order of growth: *copy from section above* 
-- Empirical order of growth (if different from theoretical): 
+- Theoretical order of growth: **O(V^2 + E)**
+- Theoretical Constant - 7.062448173827461e-08
+- Empirical order of growth (if different from theoretical): **O(V^2 + E)** The Same
+- Empirical Constant - 7.062448173827461e-08 The Same
 
+![img](linear_theoretical_constants.png)
 
-![img](img.png)
+As you can see, the constants make a near perfect flat plot here. This shows that my theoretical was probably correct.
 
-*Fill me in*
+![img](linear_empirical.svg)
+
+Here is the plot of the empirical data plotted with the constant. As you can see, the theoretical line nearly perfectly follows the trend clearly seen by the points here. However, there are a few exceptions. You can see that near the end there are some outliers popping up. There are a few reasons why we could be getting that noise there. Regardless, the trend seems to be clear in favor of the theoretical of **O(V^2 + E)**. This was just as I predicted.
+
+I think that the noise could be because I think that the python list is implemented similar to a c++ vector. It needs to grow by allocating more memory and moving everything over. I wonder if when you reach a certain point, it becomes enough to be significant. That could be the noise we see here.
 
 ## Core
 
@@ -80,34 +249,134 @@ To update I'll have a dictionary point to each node in the array.
 
 #### Time 
 
-*Fill me in*
+##### find_shortest_path_with_heap_pq - **O(V * Log V + E * Log V)**
+
+My implementation of Dijkstra's with the HeapPQ is identical to the LinearPQ in literally every respect (I even used a super class for each PQ to inherit from) except for the fact that I simply use my HeapPQ class instead of the LinearPQ. For that reason, I will only go over the time complexity for the HeapPQ operations because the other stuff is the same and I already explained that.
+
+```py
+    def _swap(self, i, j):
+        self.elements[i], self.elements[j] = self.elements[j], self.elements[i] # O(1)
+        self.reference[self.elements[i][0]] = i # O(1)
+        self.reference[self.elements[j][0]] = j # O(1)
+```
+
+As you can see, swapping two elements of the heap is simply a constant time operation because you simply swap the elements of an indexable list, which is a constant time operation.
+
+```py
+    def _percolate_up(self, index: int):
+        index = index
+        while index > 0: # O (Log V)
+            parent = ((index + 1) // 2) - 1
+            if self.elements[index][1] < self.elements[parent][1]:
+                self._swap(index, parent)  # O(1)
+                index = parent
+            else:
+                break
+```
+
+This subroutine performs swaps from the bottom (or the middle if its an update) to bring the element all the way to where it satisfies the min-heap property. Swapping is O(1), but the only question is how many times we perform it. In the worst case, we need the element to percolate all the way from the bottom of the heap to the top. That is, the height of the tree is the worst case. Because the height of a binary tree is given by Log base 2 of V, where V is the number of nodes, we conclude that upward percolation has a time complexity of O(Log n).
+
+```py
+    def _percolate_down(self):
+        index = 0 # O(1)
+        left_child = (2 * index) + 1 # O(1)
+        right_child = (2 * index) + 2 # O(1)
+        while left_child < len(self.elements): # O(Log V)
+            smallest = self._get_smallest_child(left_child, right_child) # O(1) a trivial operation calculating the minimum. I won't show it because its simply min() with error checking in case the right child is out of bounds.
+            if self.elements[index][1] > self.elements[smallest][1]: # O(1)
+                self._swap(index, smallest) # O(1) explained before
+                index = smallest
+                left_child = (2 * index) + 1
+                right_child = (2 * index) + 2
+            else:
+                break
+```
+
+Similar to percolating up, the percolate down subroutine calculates a few self explanatory constant time operations per swap (which is constant as explained before). The worst case is that the node at the top of the heap has to swap all the way down to the bottom, which would be the height of the tree swaps, making this complexity O(Log V).
+
+```py
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0 # O(1)
+
+    def push(self, item, priority):
+        self.elements.append((item, priority)) # O(1) appending to an array is constant
+        last_index = len(self.elements) - 1 # O(1)
+        self.reference[item] = last_index # O(1)
+        self._percolate_up(last_index) # O(LogV)
+```
+
+Percolating up is the only non-trivial operation here, and it happens to be O(Log V), this make the push method O(Log v). Remember that deleting an element of a hash map is also constant because hash tables are constant time operations.
+
+```py
+    def pop(self):
+        last_index = len(self.elements) - 1 # O(1)
+        if last_index < 0: # O(1)
+            raise ValueError("No Elements in the PQ")
+        self._swap(0, last_index) # O(1)
+        item, priority = self.elements.pop() # O(1)
+        self._percolate_down() # O(Log V)
+        del self.reference[item] # O(1)
+        return item
+```
+
+Popping the item from the back of the list is a trivial constant time operation because you simply free up that memory. The only non-trivial operation here is percolating down, which is O(Log V), so the pop time complexity is O(Log V).
+
+```py
+    def update_priority(self, item, priority):
+        index = self.reference[item] # O(1)
+        self.elements[index] = (item, priority) # O(1)
+        self._percolate_up(index) # O(Log V)
+```
+
+The reference index dictionary saves us a lot of time here because we can just do an O(1) lookup and access the index. Percolating up is O(Log V), so we get O(Log V) for update priority.
+
+Taking that information, we can calculate the time complexity for Dijkstra's under the HeapPQ. We get O(E * Log V) for the calls to update. We get O(V * Log V) for both the calls to push and pop. remember that outside of running Dijkstra's, the time complexity for initialization and finding the path were only O(V). We collapse these together and get a final time complexity of **O(V * Log V + E * Log V)**.
 
 #### Space
 
-*Fill me in*
+##### find_shortest_path_with_heap_pq - **O(V + E)**
+
+Because these algorithms are the same except for the type of PQ, I will include the impact of the HeapPQ in this consideration to not repeat everything. Recall that outside of the LinearPQ, the largest data structure in space complexity was the graph at O(V + E). The for loop garbage collection still applies to this situation. Only the data structures are relevant here.
+
+```py
+class HeapPQ(BasePQ):
+    def __init__(self):
+        self.elements: list[tuple[int, float]] = [] # O(V)
+        self.reference: dict[int, int] = {} # O(V)
+```
+
+As you can see, our HeapPQ uses two data structures: a reference dictionary of each node mapping to its index and a list of all Nodes and their priorities. Because at the beginning you have all V nodes in the PQ, The space complexity of our HeapPQ comes out to be O(V), which is the same as the LinearPQ.
+
+Remember, the implementation is the same other than the HeapPQ. Therefore, because the HeapPQ is simply O(V) in space, the adjacency list dictionary for the graph still dominates in space complexity. This make the space complexity for the HeapPQ algorithm still **O(V + E)**
 
 ### Empirical Data - Dijkstra's With Heap PQ
 
-| N    | Density | time (ms) |
-|------|---------|-----------|
-| 500  | .2      |           |
-| 1000 | .2      |           |
-| 1500 | .2      |           |
-| 2000 | .2      |           |
-| 2500 | .2      |           |
-| 3000 | .2      |           |
-| 3500 | .2      |           |
+|    V    |    E    | Time (sec) |
+| ------- | ------- | ---------- |
+| 500     | 75000.0 | 0.011      |
+| 1000    | 300000.0 | 0.047      |
+| 1500    | 675000.0 | 0.087      |
+| 2000    | 1200000.0 | 0.153      |
+| 2500    | 1875000.0 | 0.255      |
+| 3000    | 2700000.0 | 0.399      |
+| 3500    | 3675000.0 | 0.534      |
 
 
 
 ### Comparison of Theoretical and Empirical Results - Dijkstra's With Heap PQ
 
-- Theoretical order of growth: *copy from section above* 
+- Theoretical order of growth: **O(V * Log V + E * Log V)**
+- Theoretical Constant: 1.3232889172313144e-08
 - Empirical order of growth (if different from theoretical): 
+- Empirical Constant: 1.3232889172313144e-08
 
-![img](img.png)
+![img](heap_theoretical_constants.png)
 
-*Fill me in*
+As you can see, the constant distribution for the theoretical order is substantially flat. There's a single peak, but that's really just an outlier. The general trend here goes to show that the theoretical order is correct.
+
+![img](heap_empirical.svg)
+
+Here, you can see that the empirical closely mirrors the theoretical order. In fact, it looks like the theoretical perfectly traces it. This was just as I predicted in the theoretical analysis. Another thing worth noting is that there is a substantial amount of noise around the theoretical trend. Despite the noise, the noise seems to be evenly distributed around the theoretical line.
 
 ### Relative Performance Of Linear versus Heap PQ Performance
 
