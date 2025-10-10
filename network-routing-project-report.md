@@ -483,5 +483,11 @@ There are also orphaned nodes that only have one connection because their so far
 
 ## Project Review
 
-*Fill me in*
+I did the project review with Blake McGee on 10/10/2025. 
+
+He had only completed the baseline tier so that's what he shared with me. We had very close to the same constant of proportionality for the LinearPQ. We also ended up with the same theoretical and empirical order.
+
+His runtime graph looked slightly different than mine but it still seemed to follow the general trend pretty well. He had a different way of implementing the pop function that made it more compact. Instead of iterating through everything in the list to pop with an explicit for loop, he just used min() and passed in lambda function as the key that would access the priority part of the tuple of each entry.
+
+His implementation of Dijkstra's was pretty much the same as mine. He popped all the entries from the priority queue as the function went. All in all, we had pretty similar results, but our design and code structure varied slightly.
 
