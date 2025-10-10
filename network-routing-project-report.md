@@ -453,19 +453,33 @@ I will implement this using the random.choices module from the standard library 
 
 ### Provided Graph Generation Algorithm Explanation
 
-*Fill me in*
+The provided graph generation algorithm provides the **distribution="gaussian"** as a default parameter, so that gaussian distribution for randomness is the provided implementation for randomness. However, there are different distributions available that the provided algorithm does not use. The **seed parameter** allows you to supply a seed for the random number generation. You can use the same seed to make things deterministic.
+
+The **density parameter** relates to the number of edges per node. Specifically, it is the percentage of nodes that a single nodes connects to. With a density of 1, each node has as many edges as there are nodes, which is based on the **size parameter**. Based on the edges per node, it then iterates through every node that it will create and it randomly chooses targets that that node will have edges to based on a uniform distribution sample. Each node has the same number of targets because the edges per node is the same for all of them.
+
+To calculate the weights, it gets two points (x, y) for both the target and the source. These points (both the x and y values) are randomly selected from the normal distribution. It then calculates the distances between these randomly (through normal distribution) generated points.
+
+The **noise** parameter is now used. The noise parameter is the standard deviation for another random number selected (with a mean of 0). The algorithm with then select the highest number among 0 and the distance + this_random_number. That number then becomes the weight for the edge. What this means is that with a high enough noise, you could end up getting 0 for a lot of different edges. The main thing here though is that the algorithm assumes that weights will be normally distributed and puts the normally distributed number through this set of transformations involving the noise around a random distribution to arrive at the final weight.
+
+This algorithm works well in cases where every node has the same number of connections, and in cases where the weights between nodes is normally distribution and irrespective of the nodes at play. This does not make a lot of sense for modeling connections between cities because not every city has the same number of edges leading to or from it. Furthermore, the distances between cities are not normally distributed. In fact, I would argue that a city with less connection is likely to have a HIGHER weight on its edges. Take for example the city of Nephi, Utah.
+
+This algorithm could work well for a network of city blocks where the distances between blocks can vary slightly and isn't a perfect grid system. In this situation, we would assume that each intersection is a node that connects to four other intersections. Some stretches of road between intersections could be longer or shorter, but they will generally be quite similar. I think its fair to say that the weights would be roughly normal in distribution.
 
 ### Selected Graph Generation Algorithm Explanation
 
-*Fill me in*
+My algorithm generates random points (equivalent to the size parameter) on a plane using a completely uniform distribution. Then, it connects those points (nodes) to all other nodes that are within a certain distance from it. However, when it calculates this distance between points, it accounts for the noise parameter which can randomly change the distance that it might have. The noise parameter simply adds a constant amount to the distance randomly chosen where the noise is the standard deviation of the a normal random distribution.
+
+I implemented this using the uniform distribution module from random in the python standard library. I chose it because it better models how connection between cities would actually work. A city is more likely to be connected to a town that is closer to it. Also, some cities that are closer to more cities would have more connections. This way, not every node has the same number of edges. Nodes next to other nodes will likely have more edges.
+
+There are also orphaned nodes that only have one connection because their so far away. This more accurately mirrors ghost-town cities that only connect to one other city by a highway. For the screen shots, I generated all the plots with the same seed so you could see how the path would differ based on the different edges.
 
 #### Screenshots of Working Graph Generation Algorithm
 
-![img](small.png)
+![img](small_density.png)
 
-![img](medium.png)
+![img](medium_density.png)
 
-![img](large.png)
+![img](large_density.png)
 
 ## Project Review
 
