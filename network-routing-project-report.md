@@ -380,7 +380,11 @@ Here, you can see that the empirical closely mirrors the theoretical order. In f
 
 ### Relative Performance Of Linear versus Heap PQ Performance
 
-*Fill me in*
+It is clear that the HeapPQ outperformed the LinearPQ by a lot from the empirical data. We see that the HeapPQ had an ultimate runtime of 0.534, and the LinearPQ had an ultimate runtime of 1.207. That's more than double the runtime!
+
+This is likely because the iteration to pop from the LinearPQ is O(V). It has to iterate through literally every element to find the minimum. To the contrary, when we pop from the heap, we only have to traverse through Log base 2 of the elements of that list. That is substantially less!
+
+It's clear that the linear cost of popping adds up as we scale the system up. Having an overall time complexity of O(V^2 + E) vs O(V * Log V + E * Log V) makes a really big difference. This is precisely why we're seeing that difference play out empirically here.
 
 ## Stretch 1
 
