@@ -85,7 +85,7 @@ def _print_markdown_table(ave_runtimes, headers):
 
 def main():
     distribution = 'uniform'
-    density = 0.3
+    density = 1
     noise = 0.05
     sizes = [500, 1000, 1500, 2000, 2500, 3000, 3500]
 
